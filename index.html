@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minhas Tarefas</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #11111b;
+    color: white;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #1e1e2e;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 35px #0005;
+}
+
+h1 {
+    text-align: center;
+    color: #cba6f7;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aaa;
+    margin-bottom: 30px;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+    background: #313244;
+    color: white;
+    outline: none;
+}
+
+button {
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-btn {
+    background: #cba6f7;
+    color: #11111b;
+}
+
+.add-btn:hover {
+    background: #b4befe;
+}
+
+.counter {
+    margin: 25px 0 15px;
+    color: #aaa;
+}
+
+ul {
+    list-style: none;
+}
+
+li {
+    background: #313244;
+    padding: 14px;
+    border-radius: 9px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+li span {
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+li.done span {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.check-btn {
+    background: #a6e3a1;
+    color: #111;
+}
+
+.delete-btn {
+    background: #f38ba8;
+    color: #111;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 25px 0;
+}
+
+@media (max-width: 450px) {
+    .container {
+        padding: 20px;
+    }
+
+    .input-area {
+        flex-wrap: wrap;
+    }
+
+    .input-area input {
+        flex-basis: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>✨ Minhas Tarefas</h1>
+    <p class="subtitle">Organize seu dia e alcance seus objetivos!</p>
+
+    <div class="input-area">
+        <input
+            type="text"
+            id="taskInput"
+            placeholder="Digite uma nova tarefa..."
+        >
+        <button class="add-btn" onclick="addTask()">
+            Adicionar
+        </button>
+    </div>
+
+    <p class="counter" id="counter">
+        0 tarefas pendentes
+    </p>
+
+    <ul id="taskList"></ul>
+
+</div>
+
+<script>
+let tasks = JSON.parse(
+    localStorage.getItem("tasks")
+) || [];
+
+function saveTasks() {
+    localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+    );
+}
+
+function addTask() {
+    const input = document.getElementById("taskInput");
+    const text = input.value.trim();
+
+    if (text === "") {
+        alert("Digite uma tarefa primeiro!");
+        return;
+    }
+
+    tasks.push({
+        id: Date.now(),
+        text: text,
+        done: false
+    });
+
+    input.value = "";
+    saveTasks();
+    renderTasks();
+}
+
+function toggleTask(id) {
+    tasks = tasks.map(task => {
+        if (task.id === id) {
+            task.done = !task.done;
+        }
+        return task;
+    });
+
+    saveTasks();
+    renderTasks();
+}
+
+function deleteTask(id) {
+    tasks = tasks.filter(task => task.id !== id);
+    saveTasks();
+    renderTasks();
+}
+
+function renderTasks() {
+    const list = document.getElementById("taskList");
+    const counter = document.getElementById("counter");
+
+    list.innerHTML = "";
+
+    const pending = tasks.filter(task => !task.done).length;
+
+    counter.textContent =
+        pending + (pending === 1
+            ? " tarefa pendente"
+            : " tarefas pendentes");
+
+    if (tasks.length === 0) {
+        list.innerHTML =
+            '<p class="empty">Nenhuma tarefa por aqui. Adicione a primeira! 😊</p>';
+        return;
+    }
+
+    tasks.forEach(task => {
+        const li = document.createElement("li");
+
+        if (task.done) {
+            li.classList.add("done");
+        }
+
+        const span = document.createElement("span");
+        span.textContent = task.text;
+
+        const check = document.createElement("button");
+        check.className = "check-btn";
+        check.textContent = task.done ? "Desfazer" : "Concluir";
+        check.onclick = () => toggleTask(task.id);
+
+        const remove = document.createElement("button");
+        remove.className = "delete-btn";
+        remove.textContent = "Excluir";
+        remove.onclick = () => deleteTask(task.id);
+
+        li.append(span, check, remove);
+        list.appendChild(li);
+    });
+}
+
+document.getElementById("taskInput")
+    .addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            addTask();
+        }
+    });
+
+renderTasks();
+</script>
+
+</body>
+</html>
